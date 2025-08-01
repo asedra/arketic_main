@@ -41,3 +41,5 @@ Thumbs.db
 # Claude Code files
 .claude/
 CLAUDE.md
+
+commit_task.sh

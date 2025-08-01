@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { AppService } from './app.service';
+import { DatabaseService } from './database/database.service';
 import { 
   ApiTags, 
   ApiOperation, 
@@ -17,7 +18,10 @@ export interface HealthResponse {
 @ApiTags('health')
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor(
+    private readonly appService: AppService,
+    private readonly databaseService: DatabaseService,
+  ) {}
 
   @Get()
   @ApiOperation({ 
@@ -76,5 +80,31 @@ export class AppController {
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development',
     };
+  }
+
+  @Get('health/database')
+  @ApiOperation({ 
+    summary: 'Database health check',
+    description: 'Check the database connection and PGVector extension status'
+  })
+  @ApiOkResponse({
+    description: 'Database health check performed successfully',
+    schema: {
+      type: 'object',
+      properties: {
+        status: {
+          type: 'string',
+          example: 'success',
+          description: 'Database connection status'
+        },
+        info: {
+          type: 'object',
+          description: 'Database connection information'
+        }
+      }
+    }
+  })
+  async getDatabaseHealth() {
+    return await this.databaseService.testConnection();
   }
 }
