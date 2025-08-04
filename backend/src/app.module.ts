@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { WebSocketModule } from './websocket/websocket.module';
 import { DatabaseModule } from './database/database.module';
+import { AIModule } from './ai/ai.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { DatabaseModule } from './database/database.module';
     }),
     DatabaseModule,
     WebSocketModule,
+    AIModule,
   ],
   controllers: [AppController],
   providers: [AppService],

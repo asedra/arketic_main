@@ -69,3 +69,5 @@ docker-compose*
 README.md
 *.md
 docs/
+
+frontend/.next/
