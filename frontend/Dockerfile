@@ -4,20 +4,21 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat curl
+RUN apk add --no-cache libc6-compat curl && npm install -g npm@latest
 WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./
 # Skip prepare script for production build
-RUN npm ci --only=production --frozen-lockfile --ignore-scripts
+RUN npm install --omit=dev --ignore-scripts
 
 # Stage 2: Build the application
 FROM base AS builder
+RUN npm install -g npm@latest
 WORKDIR /app
 # Copy package files and install ALL dependencies for build
 COPY package.json package-lock.json* ./
-RUN npm ci --frozen-lockfile --ignore-scripts
+RUN npm install --ignore-scripts
 COPY . .
 
 # Environment variables for build

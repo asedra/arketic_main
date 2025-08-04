@@ -2,27 +2,28 @@
 # Stage 1: Dependencies
 FROM node:20-alpine AS base
 
-# Install system dependencies
+# Install system dependencies and update npm
 RUN apk add --no-cache \
     python3 \
     make \
     g++ \
     libc6-compat \
-    curl
+    curl && \
+    npm install -g npm@latest
 
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production --frozen-lockfile && npm cache clean --force
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Stage 2: Build dependencies (includes devDependencies)
 FROM base AS build-deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --frozen-lockfile
+RUN npm ci
 
 # Stage 3: Build the application
 FROM build-deps AS builder
