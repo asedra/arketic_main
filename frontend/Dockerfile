@@ -1,6 +1,6 @@
 # Arketic Frontend - Multi-stage Docker Build
 # Stage 1: Dependencies and Build
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
