@@ -9,12 +9,15 @@ WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production --frozen-lockfile
+# Skip prepare script for production build
+RUN npm ci --only=production --frozen-lockfile --ignore-scripts
 
 # Stage 2: Build the application
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+# Copy package files and install ALL dependencies for build
+COPY package.json package-lock.json* ./
+RUN npm ci --frozen-lockfile --ignore-scripts
 COPY . .
 
 # Environment variables for build
@@ -39,7 +42,7 @@ RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copy necessary files from builder stage
-COPY --from=builder /app/public ./public
+# Public folder is optional in Next.js
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing

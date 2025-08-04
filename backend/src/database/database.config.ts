@@ -16,7 +16,7 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
     migrations: [__dirname + '/migrations/*{.ts,.js}'],
     synchronize: !isProduction, // Don't use synchronize in production
     logging: !isProduction,
-    ssl: isProduction ? { rejectUnauthorized: false } : false,
+    ssl: false, // SSL not needed for internal Docker network
     extra: {
       connectionLimit: 10, // Connection pool size
       acquireTimeout: 60000,
