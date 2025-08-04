@@ -9,21 +9,28 @@ RUN apk add --no-cache \
     g++ \
     libc6-compat \
     curl && \
-    npm install -g npm@latest
+    npm install -g npm@latest && \
+    npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-factor 2 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000
 
 FROM base AS deps
 WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN --mount=type=cache,target=/root/.npm \
+    for i in 1 2 3; do npm ci --omit=dev && break || (echo "npm ci attempt $i failed, retrying..." && sleep $((i * 10))); done
 
 # Stage 2: Build dependencies (includes devDependencies)
 FROM base AS build-deps
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm \
+    for i in 1 2 3; do npm ci && break || (echo "npm ci attempt $i failed, retrying..." && sleep $((i * 10))); done
 
 # Stage 3: Build the application
 FROM build-deps AS builder

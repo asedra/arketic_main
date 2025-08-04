@@ -4,21 +4,34 @@ FROM node:20-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat curl && npm install -g npm@latest
+RUN apk add --no-cache libc6-compat curl && \
+    npm install -g npm@latest && \
+    npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-factor 2 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000
 WORKDIR /app
 
 # Copy package files for dependency installation
 COPY package.json package-lock.json* ./
 # Skip prepare script for production build
-RUN npm install --omit=dev --ignore-scripts
+RUN --mount=type=cache,target=/root/.npm \
+    for i in 1 2 3; do npm ci --omit=dev --ignore-scripts && break || (echo "npm ci attempt $i failed, retrying..." && sleep $((i * 10))); done
 
 # Stage 2: Build the application
 FROM base AS builder
-RUN npm install -g npm@latest
+RUN npm install -g npm@latest && \
+    npm config set fetch-timeout 300000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-retry-factor 2 && \
+    npm config set fetch-retry-mintimeout 10000 && \
+    npm config set fetch-retry-maxtimeout 60000
 WORKDIR /app
 # Copy package files and install ALL dependencies for build
 COPY package.json package-lock.json* ./
-RUN npm install --ignore-scripts
+RUN --mount=type=cache,target=/root/.npm \
+    for i in 1 2 3; do npm ci --ignore-scripts && break || (echo "npm ci attempt $i failed, retrying..." && sleep $((i * 10))); done
 COPY . .
 
 # Environment variables for build

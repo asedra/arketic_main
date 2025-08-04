@@ -1,3 +1,5 @@
+# BuildKit is required for npm cache mounting optimization
+# Export DOCKER_BUILDKIT=1 before running docker-compose build
 services:
   # PostgreSQL Database with PGVector extension
   database:
